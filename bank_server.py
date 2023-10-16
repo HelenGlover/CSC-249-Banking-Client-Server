@@ -4,11 +4,16 @@
 # Jimmy da Geek
 
 import socket
+import selectors
+import types
+
 
 HOST = "127.0.0.1"      # Standard loopback interface address (localhost)
 PORT = 65432            # Port to listen on (non-privileged ports are > 1023)
 ALL_ACCOUNTS = dict()   # initialize an empty dictionary
 ACCT_FILE = "accounts.txt"
+ADDR = (HOST, PORT)
+FORMAT = "utf-8"
 
 ##########################################################
 #                                                        #
@@ -17,6 +22,8 @@ ACCT_FILE = "accounts.txt"
 # No Changes Needed in This Section                      #
 #                                                        #
 ##########################################################
+
+#this is working, there is no code for the first two characters being alphabet but thats okay
 
 def acctNumberIsValid(ac_num):
     """Return True if ac_num represents a valid account number. This does NOT test whether the account actually exists, only
@@ -82,14 +89,16 @@ class BankAccount:
             self.acct_balance -= amount
         return self, result_code, round(self.acct_balance,2)
 
-def get_acct(acct_num):
+def get_acct(ac_num): 
     """ Lookup acct_num in the ALL_ACCOUNTS database and return the account object if it's found.
         Return False if the acct_num is invalid. """
-    if acctNumberIsValid(acct_num) and (acct_num in ALL_ACCOUNTS):
-        return ALL_ACCOUNTS[acct_num]
+    if acctNumberIsValid(ac_num) and (ac_num in ALL_ACCOUNTS):
+        return ALL_ACCOUNTS[ac_num] 
     else:
         return False
 
+#helper function for load_all_accounts
+#client creates a new account, loads it into the file, new deposit  
 def load_account(num_str, pin_str, bal_str):
     """ Load a presumably new account into the in-memory database. All supplied arguments are expected to be strings. """
     try:
@@ -110,6 +119,7 @@ def load_account(num_str, pin_str, bal_str):
     return False
     
 def load_all_accounts(acct_file = "accounts.txt"):
+    print('g')
     """ Load all accounts into the in-memory database, reading from a file in the same directory as the server application. """
     print(f"loading account data from file: {acct_file}")
     with open(acct_file, "r") as f:
@@ -130,18 +140,162 @@ def load_all_accounts(acct_file = "accounts.txt"):
     print("finished loading account data")
     return True
 
-##########################################################
-#                                                        #
-# Bank Server Network Operations                         #
-#                                                        #
-# TODO: THIS SECTION NEEDS TO BE WRITTEN!!               #
-#                                                        #
-##########################################################
+# ##########################################################
+# #                                                        #
+# # Bank Server Network Operations                         #
+# #                                                        #
+# # TODO: THIS SECTION NEEDS TO BE WRITTEN!!               #
+# #                                                        #
+# ##########################################################
 
+    #######################################
+    # Implementing the selectors - NEED TO FIGURE OUT MESSAGE ENCODING BEFOREHAND 
+    #######################################
 def run_network_server():
-    """ This and all supporting code needs to be written! """
-    print("Bank server network functions not implemented!!")
-    return
+
+#     sel = selectors.DefaultSelector()
+
+#     lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) ##calls to this socket will not block
+#     lsock.bind((HOST, PORT))
+#     lsock.listen()
+#     print(f"Listening on {(HOST, PORT)}")
+#     lsock.setblocking(False) ##calls will no longer block
+#     sel.register(lsock, selectors.EVENT_READ, data=None) ##registers socket with select(), event read allows it to read 
+    
+#     try:
+#         while True:
+#             events = sel.select(timeout=None) ##returns a list of tuples, each with a key and mask
+#             for key, mask in events:
+#                 if key.data is None:
+#                     accept_wrapper(sel, key.fileobj) ##get new socket and register it 
+#                 else: ##if key data is not none, then the socket is already accepted - just need to service it
+#                     service_connection(sel, key, mask)
+#     except KeyboardInterrupt:
+#         print("Caught keyboard interrupt, exiting")
+#     finally:
+#         sel.close()
+
+# def accept_wrapper(sel, sock):
+#     conn, addr = sock.accept()  ## Should be ready to read
+#     print(f"Accepted connection from {addr}")
+#     conn.setblocking(False) ##puts socket in a non-blocking mode
+#     data = {} ##object to hold the data you want in !!@331212
+#     events = selectors.EVENT_READ | selectors.EVENT_WRITE ##uses bitwise OR - used for manipulating bits - now client connection is ready for writing and reading 
+#     sel.register(conn, events, data=data)
+
+
+# def service_connection(sel, key, mask):
+#     sock = key.fileobj ##tuple from .select with the socket object
+#     data = key.data
+#     if mask & selectors.EVENT_READ: ##evaluates to true, data is append to data.outb
+#         recv_data = sock.recv(1024)  
+#         if recv_data:
+#             print("the recieving data" + str(recv_data))
+#             data.outb += recv_data
+#         else: ##client closed socket and SERVER should too!
+#             print(f"Closing connection to {data.addr}")
+#             sel.unregister(sock)
+#             sock.close()
+#     if mask & selectors.EVENT_WRITE: ##data also stored in data.outb
+#         if data.outb:
+#             print(f"Echoing {data.outb!r} to {data.addr}")
+#             sent = sock.send(data.outb)  ## Should be ready to write
+#             data.outb = data.outb[sent:]
+
+#     print("server starting - listening for connections at IP", HOST, "and port", PORT)
+
+    #######################################
+    # Part A: Connecting to socket 
+    #######################################
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_sock:
+        server_sock.bind((HOST,PORT))
+        server_sock.listen()
+        conn, addr = server_sock.accept()
+
+        with conn:  #new connection - new socket object is returned from accept() (different socket from the listening socket)
+            print(f"Connection was established, {addr}")
+    # #######################################
+    # # Part B: decoding the message 
+    # #######################################      
+        #while True: #we want while to loop through processes?
+
+            msg = conn.recv(1024)
+            print('The decoded message', msg.decode(FORMAT)) #this worked, prints out the code
+            print(f"Received client message '{msg!r}' [{len(msg)} bytes] \n") # print client message
+            print(type(msg))
+
+    #######################################
+    # Part C: Split and get validation from acct_num 
+    #######################################  
+
+            new_login = str(msg) #Might want to keep as byte but for now keep as this - dont need to split (1. bytes, and 2. the acct_num from client was send over)
+            print(type(new_login)) #just want to see if its
+            new_login = [x.strip() for x in new_login.split(',')]
+            ac_num = new_login[0] #does have b attached as byte
+            ac_num = ac_num[2:]
+            print(ac_num, "new account")
+            pin = new_login[1][:-1]
+            print(pin, "new pin")
+
+            if acctNumberIsValid(ac_num) and acctPinIsValid(pin):    
+                msg1 ='The account number and pin are correct'
+                print(msg1)
+                conn.sendall(msg1.encode(FORMAT))
+                
+            elif acctNumberIsValid(ac_num) and not acctPinIsValid(pin):  
+                msg1 ='The account number is correct, the PIN is not'
+                conn.sendall(msg1.encode(FORMAT))
+
+            elif not acctNumberIsValid(ac_num) and acctPinIsValid(pin):  
+                msg1 ='The pin is correct, the ACCOUNT NUMBER is not'
+                conn.sendall(msg1.encode(FORMAT))
+
+            else: 
+                msg ="The PIN and ACCOUNT NUMBER are both wrong"
+                print(msg1)
+                conn.sendall(msg1.encode(FORMAT))
+    return 
+####################################################
+
+        #####################################
+        #transactions - hopefully implement them with the selectors soon
+        #####################################
+        
+        #####################################
+        #deposit
+        #####################################
+
+        #process_customer_transactions comes after validation
+
+        #need to get balance  (get_acct_balance) - DEPOSIT
+
+            #if process_deposit(sock, acct_num)
+
+                # call amountIsValid
+                # class BankAccount(input)
+                # send back to server
+
+        #adding new balance commands
+    
+        #####################################
+        #withdraw
+        #####################################
+
+        #process_customer_transactions comes after validation
+
+        #need to get balance  (get_acct_balance) - DEPOSIT
+
+            #if withdraw(self, amount)
+                # call amountIsValid
+                # check - amountIsValid is not positive float() with at most two decimal places.
+                # send back to client
+
+                # class BankAccount(input)
+                # send back to server
+        
+        #####################################
+        #check balance is part of "withdraw" and "deposit", but not something ppl can do
+    
 
 ##########################################################
 #                                                        #
