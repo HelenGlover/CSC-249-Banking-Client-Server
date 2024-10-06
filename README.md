@@ -1,18 +1,10 @@
-# CSC 249 – Project 2 – ATM client with multi-client back-end banking server
+# CSC 249 – ATM client with multi-client back-end banking server
 
-In this project you will build a distributed ATM banking application. This application consists of two separate software programs: (1) a bank server, which holds all bank account records and handles all financial transactions; and (2) an Automated Teller Machine client, which obtains needed inputs from the customer but otherwise relies on the server to perform transaction processing.
+Build a distributed ATM banking application. This application consists of two separate software programs: (1) a bank server, which holds all bank account records and handles all financial transactions; and (2) an Automated Teller Machine client, which obtains needed inputs from the customer but otherwise relies on the server to perform transaction processing.
 
-The main focus of your work will be on enabling the banking server to handle simultaneous connections from different ATM client instances, and then process transaction requests correctly. Relevant technical resources include the Jennings tutorial we encountered in Project 1 (https://realpython.com/python-sockets/). For this project, it is recommended that you focus on the tutorial material pertaining to Handling Multiple Connections [(https://realpython.com/python-sockets/#handling-multiple-connections)].
+Enable the banking server to handle simultaneous connections from different ATM client instances, and then process transaction requests correctly. 
 
-To help you get started on this project and enable you to focus on the most important parts (that is, the networking components and the client-server message protocol), you are given initial code for both programs. The Python file "bank_server.py" implements all the back-end server functionality EXCEPT none of the network communication components have been implemented. The Python file "atm_client.py" contains a basic ATM client application EXCEPT none of the client-server messaging and message handling functions have been implemented. You should study this code and make sure you understand how it works and where you need to make changes and/or insert new code. Both programs are sprinkled with "TODO" in comments to help you find and focus on the parts of the programs where you will need to be working.
-
-**If you have any questions about the provided code or the instructions below, please seek help from the instructor and/or the teaching assistant as soon as possible!**
-
-## Bank Server Design Requirements
-
-Conceptually at least, the bank_server application runs in a secure data center on a server that is owned and operated by the bank. Although the server is welcome to generate log messages to the console for debugging and development purposes, it should not be assumed that any customer would be able to access the bank_server console. All communications from the server to the customer must be mediated by the ATM client. That is, server communications must take the form of messages that are sent to the ATM client and interpreted there.
-
-The bank_server:
+## The bank_server:
 
 * MUST run in its own computing process (i.e., in a dedicated terminal window).
 * MUST allow multiple simultaneous ATM client connections.
@@ -26,13 +18,7 @@ The bank_server:
 * The bank_server MAY generate console output for tracing and debugging purposes.
 * The bank_server MUST NOT assume that any customer has access to the server's console.
 
-## ATM Client Design Requirements
-
-Conceptually, each ATM client is a "thin" software application that connects to the remote bank_server, then interacts with a single customer at a time. The ATM client relies on the bank_server for all transaction processing. The ATM client communicates with the bank_server using an application-layer message protocol which you will design as part of this assignment.
-
-Notionally, every ATM banking session begins with a customer "logging in" by providing an account number and a PIN code. (In real life, a customer inserts a physical card into the machine, which then reads the account number off the card.) Only after a customer has provided a valid account-PIN pair will the machine permit any transactions. The ATM machine allows customers to make deposits, withdrawals, and check their account balance. The ATM machine allows customers to make an unlimited number of deposits and/or withdrawals during a session, but does not allow customers to overdraw their accounts. When the customer chooses to exit the banking session, the ATM client "logs out" from the bank_server and exits.
-
-The atm_client:
+## ATM Client 
 
 * MUST run in its own computing process (i.e., in a dedicated terminal window).
 * MUST obtain all needed user inputs through keyboard interaction.
@@ -42,60 +28,3 @@ The atm_client:
 * MUST NOT allow a customer to perform any banking transactions unless their account number and PIN are first validated by the bank_server.
 * MUST allow a customer to perform any sequence of deposits, withdrawals, and balance checks after they have validated their account number and PIN.
 * MUST NOT allow a customer to overdraw their bank account.
-
-## General Client-Server Application Design Requirements
-
-* You MUST use the provided bank_server and atm_client programs as your starting point. You MUST NOT implement your own bank server and client from scratch.
-* You MAY extend the core banking functionality in the bank_server and atm_client, but only to the degree needed to enable the two components to be able to interoperate.
-* Your code MUST be readable, well organized, and demonstrate care and attention to computer programming best practices. The provided bank_server and atm_client provide good examples of such practices: classes and functions with easy-to-understand names are used extensively; functions are kept short (under 20 lines is ideal); functions are commented, and comments are inserted at key points within the function body.
-
-## Deliverables
-
-Your work on this project must be submitted for grading by **WEDNESDAY 10/18 at 11:59PM**. Extensions may be obtained by following the late submission policy [https://docs.google.com/document/d/1Fx0iviSFzelwKQWx-QmeSulg4MwX9xXS].
-
-All work must be submitted via Gradescope.
-
-You must submit these work products:
-
-1. Source code for your bank_server and atm_client. Ideally, this will be a link to your public Git code repository. (Use of Git is encouraged but not required; you may instead upload your individual files directly to Gradescope without involving Git.)
-2. A message specification document. For required contents, see Message Specification Document Requirements below.
-
-## Message Specification Document Requirements
-
-* This document MUST include a written summary of the application-layer message protocol you developed for all communications between the client and the server.
-* Message formats MUST be documented using Augmented Backus–Naur form (ABNF). See [https://en.wikipedia.org/wiki/Augmented_Backus%E2%80%93Naur_form] for details on ABNF.
-* In addition to the ABNF specification, you MUST include some examples of each type of message you have defined.
-* You MUST describe the component fields of each message, what constitutes allowed values for each field, and expected receiver actions in response to each message.
-* You MUST include a brief description of how you solved the design problem of preventing bank account access from more than one atm_client at a time.
-
-## Teamwork Policy
-
-**For this project, submissions from two-person teams are welcome**.
-
-Teams should consider code revisions that enable the atm_client and bank_server to use real IP addresses instead of the loopback address. In this way, one team member could focus on client development and the other on server development, then the team members could test their components from different locations. This could be very cool!
-
-## Getting Help
-
-There is plenty of self-help material out there to help you understand socket programming in Python. 
-
-* Socket Programming in Python (Guide) by Nathan Jennings [https://realpython.com/python-sockets/]
-* Python sockets library documentation [https://docs.python.org/3/library/socket.html]
-* LinkedIn Learning (Smith College offers free access) – search “python sockets”
-* Slack messages in the #questions channel. Students are encouraged to help each other out – this is part of what “participation and engagement” means in the overall course grading rubric.
-* Instructor and TA office hours!
-
-## Grading Rubric
-
-Your work on this project will be graded on a ten-point scale. Fractional points may be awarded.
-
-_0 pts:_ No deliverables were received by the due date or requested extension date.
-
-_1-5 pts:_ Incomplete deliverables were received by the due date or extension date.
-
-_6-7 pts:_ All deliverables received. Most design requirements are not satisfied.
-
-_7-8 pts:_ All deliverables received. Many design requirements are not satisfied.
-
-_8-9 pts:_ All deliverables received. A few design requirements are not satisfied.
-
-_9-10 pts:_ Complete deliverables, all or nearly all design requirements are satisfied.
